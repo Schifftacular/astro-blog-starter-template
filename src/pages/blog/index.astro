@@ -9,103 +9,307 @@ import FormattedDate from '../../components/FormattedDate.astro';
 const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+
+const [featured, ...rest] = posts;
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			main {
-				width: 960px;
-			}
-			ul {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
-			}
-			ul li {
-				width: calc(50% - 1rem);
-			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
-				line-height: 1;
-			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
-			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
-			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
-			}
-			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
-				}
-			}
-		</style>
+		<BaseHead title={`Blog — ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
 	</head>
 	<body>
 		<Header />
+
+		<!-- Page header band -->
+		<div class="page-banner">
+			<div class="page-banner-inner">
+				<span class="page-banner-label">All Posts</span>
+				<h1 class="page-banner-title">On Course</h1>
+			</div>
+			<div class="page-banner-stripe" aria-hidden="true"></div>
+		</div>
+
 		<main>
-			<section>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.id}/`}>
-									<img width={720} height={360} src={post.data.heroImage} alt="" />
-									<h4 class="title">{post.data.title}</h4>
-									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-								</a>
-							</li>
-						))
-					}
-				</ul>
-			</section>
+			{featured && (
+				<div class="featured-card">
+					{featured.data.heroImage && (
+						<a href={`/blog/${featured.id}/`} class="featured-image-link">
+							<img
+								class="featured-image"
+								width={960}
+								height={480}
+								src={featured.data.heroImage}
+								alt={featured.data.title}
+							/>
+						</a>
+					)}
+					<div class="featured-body">
+						<div class="featured-eyebrow">Latest</div>
+						<h2 class="featured-title">
+							<a href={`/blog/${featured.id}/`}>{featured.data.title}</a>
+						</h2>
+						<p class="featured-date"><FormattedDate date={featured.data.pubDate} /></p>
+						{featured.data.description && (
+							<p class="featured-desc">{featured.data.description}</p>
+						)}
+					</div>
+				</div>
+			)}
+
+			{rest.length > 0 && (
+				<div class="section-label">
+					<span class="section-label-bar"></span>
+					<span class="section-label-text">More Posts</span>
+				</div>
+			)}
+
+			<ul class="post-grid">
+				{rest.map((post) => (
+					<li class="post-tile">
+						<a href={`/blog/${post.id}/`} class="post-tile-link">
+							{post.data.heroImage && (
+								<img
+									class="post-tile-image"
+									width={480}
+									height={240}
+									src={post.data.heroImage}
+									alt={post.data.title}
+									loading="lazy"
+								/>
+							)}
+							<div class="post-tile-body">
+								<h3 class="post-tile-title">{post.data.title}</h3>
+								<p class="post-tile-date"><FormattedDate date={post.data.pubDate} /></p>
+							</div>
+						</a>
+					</li>
+				))}
+			</ul>
 		</main>
+
 		<Footer />
 	</body>
 </html>
+
+<style>
+	/* ── Page banner ── */
+	.page-banner {
+		position: relative;
+		background: #1A3A8C;
+		overflow: hidden;
+		padding: 2.5em 2em 2em;
+	}
+
+	.page-banner-inner {
+		position: relative;
+		z-index: 2;
+		max-width: 960px;
+		margin: 0 auto;
+	}
+
+	.page-banner-label {
+		display: block;
+		font-family: 'Barlow Condensed', sans-serif;
+		font-weight: 700;
+		font-size: 0.8em;
+		letter-spacing: 0.2em;
+		text-transform: uppercase;
+		color: rgba(255,255,255,0.55);
+		margin-bottom: 0.25em;
+	}
+
+	.page-banner-title {
+		font-family: 'Barlow Condensed', sans-serif;
+		font-weight: 900;
+		font-size: clamp(2em, 6vw, 3.5em);
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: #fff;
+		margin: 0;
+	}
+
+	.page-banner-stripe {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		width: 30%;
+		background: rgba(197, 25, 42, 0.45);
+		transform: skewX(-8deg) translateX(10%);
+	}
+
+	/* ── Main ── */
+	main {
+		width: 960px;
+		max-width: calc(100% - 2em);
+		margin: 0 auto;
+		padding: 3em 1em 4em;
+	}
+
+	/* ── Featured ── */
+	.featured-card {
+		display: grid;
+		grid-template-columns: 1.6fr 1fr;
+		gap: 2em;
+		margin-bottom: 3em;
+		border-bottom: 2px solid #1A3A8C;
+		padding-bottom: 3em;
+	}
+
+	.featured-image-link { display: block; }
+
+	.featured-image {
+		width: 100%;
+		aspect-ratio: 16/8;
+		object-fit: cover;
+		border-radius: 4px;
+		border-left: 4px solid #C5192A;
+	}
+
+	.featured-body {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 0.5em;
+	}
+
+	.featured-eyebrow {
+		font-family: 'Barlow Condensed', sans-serif;
+		font-weight: 700;
+		font-size: 0.8em;
+		letter-spacing: 0.2em;
+		text-transform: uppercase;
+		color: #C5192A;
+	}
+
+	.featured-title {
+		font-size: 2em;
+		margin: 0;
+		text-transform: uppercase;
+	}
+
+	.featured-title a {
+		color: #1A3A8C;
+		text-decoration: none;
+		transition: color 0.15s;
+	}
+
+	.featured-title a:hover { color: #C5192A; }
+
+	.featured-date {
+		font-family: 'Barlow Condensed', sans-serif;
+		font-weight: 700;
+		font-size: 0.85em;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: rgb(96, 115, 159);
+		margin: 0;
+	}
+
+	.featured-desc {
+		font-family: 'Inter', sans-serif;
+		font-size: 0.9em;
+		color: rgb(96, 115, 159);
+		margin: 0;
+		line-height: 1.6;
+		text-transform: none;
+		font-weight: 400;
+	}
+
+	/* ── Section label ── */
+	.section-label {
+		display: flex;
+		align-items: center;
+		gap: 0.75em;
+		margin-bottom: 1.5em;
+	}
+
+	.section-label-bar {
+		display: block;
+		width: 4px;
+		height: 1.5em;
+		background: #C5192A;
+	}
+
+	.section-label-text {
+		font-family: 'Barlow Condensed', sans-serif;
+		font-weight: 700;
+		font-size: 1.05em;
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
+		color: #1A3A8C;
+	}
+
+	/* ── Post grid ── */
+	.post-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+		gap: 1.75em;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.post-tile-link {
+		display: block;
+		text-decoration: none;
+		border: 1px solid rgb(229, 233, 240);
+		border-radius: 4px;
+		overflow: hidden;
+		transition: border-color 0.15s, transform 0.15s;
+	}
+
+	.post-tile-link:hover {
+		border-color: #C5192A;
+		transform: translateY(-2px);
+	}
+
+	.post-tile-image {
+		width: 100%;
+		aspect-ratio: 16/9;
+		object-fit: cover;
+		display: block;
+	}
+
+	.post-tile-body {
+		padding: 1em;
+	}
+
+	.post-tile-title {
+		font-family: 'Barlow Condensed', sans-serif;
+		font-size: 1.3em;
+		font-weight: 700;
+		text-transform: uppercase;
+		color: #1A3A8C;
+		margin: 0 0 0.35em;
+		transition: color 0.15s;
+	}
+
+	.post-tile-link:hover .post-tile-title { color: #C5192A; }
+
+	.post-tile-date {
+		font-family: 'Barlow Condensed', sans-serif;
+		font-size: 0.8em;
+		font-weight: 700;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: rgb(96, 115, 159);
+		margin: 0;
+	}
+
+	@media (max-width: 720px) {
+		.featured-card {
+			grid-template-columns: 1fr;
+		}
+		.post-grid {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.post-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
